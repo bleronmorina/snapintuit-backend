@@ -38,7 +38,7 @@ use function PHPUnit\Framework\isEmpty;
     {
         set_time_limit(120);
         $request->validate([
-            'file' => 'required|mimes:pdf|max:5120',
+            'file' => 'required|mimes:pdf|max:16384',
             'name' => 'required|string',
             'user_id' => 'required|integer|exists:users,id',
         ]);
