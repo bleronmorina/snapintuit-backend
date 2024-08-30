@@ -53,8 +53,13 @@ use function PHPUnit\Framework\isEmpty;
             $media = $pdf->addMedia($request->file('file'))->toMediaCollection('files', 's3');
 
             $text = $this->analyzeDocumentWithTextract($media->getPath());
-            $generatedName = $responseAIController->generateDocumentName($text);
-            $pdf->name = $generatedName;
+            if($request->name === "AI"){
+                $generatedName = $responseAIController->generateDocumentName($text);
+                $pdf->name = $generatedName;
+            } else {
+                $pdf->name = $request->name;
+            }
+
             $pdf->update();
 
             $extractedText = new ExtractedText();
