@@ -59,7 +59,8 @@ use function PHPUnit\Framework\isEmpty;
             } else {
                 $pdf->name = $request->name;
             }
-
+            $generatedCategory = $responseAIController->generateDocumentCategory($text);
+            $pdf->category = $generatedCategory;
             $pdf->update();
 
             $extractedText = new ExtractedText();
@@ -81,31 +82,53 @@ use function PHPUnit\Framework\isEmpty;
 
 
     public function getUserPdfs(Request $request)
-    {;
-
+    {
         $request->validate([
+            'category' => 'required|string',
             'user_id' => 'required|integer|exists:users,id',
         ]);
 
         $userId = $request->input('user_id');
+        $category = $request->input('category');
 
-        $pdfs = Pdf::where('user_id', $userId)
-            ->with(['media'])
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($pdf) {
-                $media = $pdf->media->first();
+        if($category === 'All'){
+            $pdfs = Pdf::where('user_id', $userId)
+                ->with(['media'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($pdf) {
+                    $media = $pdf->media->first();
 
-                return [
-                    'id' => $pdf->id,
-                    'originalUrl' =>  $this->generateCustomUrl($media->getPath()),
-                    'title' => $pdf->name,
-                    'size' => isset($media) ? round(($media->size/1024), 1) . ' Kbyte' : 'Unknown',
-                    'creationDate' => $pdf->created_at,
-                ];
-            });
+                    return [
+                        'id' => $pdf->id,
+                        'originalUrl' =>  $this->generateCustomUrl($media->getPath()),
+                        'title' => $pdf->name,
+                        'size' => isset($media) ? round(($media->size/1024), 1) . ' Kbyte' : 'Unknown',
+                        'creationDate' => $pdf->created_at,
+                    ];
+                });
 
-        return response()->json($pdfs, 200);
+            return response()->json($pdfs, 200);
+        } else {
+            $pdfs = Pdf::where('user_id', $userId)
+                ->where('category', $category)
+                ->with(['media'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($pdf) {
+                    $media = $pdf->media->first();
+
+                    return [
+                        'id' => $pdf->id,
+                        'originalUrl' =>  $this->generateCustomUrl($media->getPath()),
+                        'title' => $pdf->name,
+                        'size' => isset($media) ? round(($media->size/1024), 1) . ' Kbyte' : 'Unknown',
+                        'creationDate' => $pdf->created_at,
+                    ];
+                });
+
+            return response()->json($pdfs, 200);
+        }
     }
 
     private function analyzeDocumentWithTextract($s3Path)
@@ -173,6 +196,19 @@ use function PHPUnit\Framework\isEmpty;
         return response()->json(['message' => 'Pdf not found'], 404);
     }
 
+
+    public function getPdfCategories(Request $request){
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+        $userId = $request->input('user_id');
+        $pdfs = Pdf::where('user_id', $userId)
+            ->select('category')
+            ->distinct()
+            ->get();
+
+        return response()->json($pdfs, 200);
+    }
 
 }
 

@@ -20,7 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('pdf', [PdfController::class, 'index']);
     Route::post('upload', [PdfController::class, 'upload']);
     Route::get('user/pdfs', [PdfController::class, 'getUserPdfs']);
-    Route::get('pdf/{id}', [PdfController::class, 'getPdfFile']);
     Route::get('ai', [ResponseAIController::class, 'getAiResponse']);
     Route::delete('pdf/{id}', [PdfController::class, 'deletePdf']);
+    Route::get('pdf/categories', [PdfController::class, 'getPdfCategories']);
 });

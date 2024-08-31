@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('pdfs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('name')->nullable(); // No need for change() here
+            $table->string('name')->nullable();
+            $table->string('category')->nullable();
             $table->timestamps();
         });
     }

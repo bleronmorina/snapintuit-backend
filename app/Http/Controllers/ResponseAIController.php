@@ -36,7 +36,17 @@ class ResponseAIController extends Controller
     {
         $prompt = 'Generate a title based on the following text (only return the simple name,no apostrophes, keep it extra short!): ' . $text;
 
-        $response = $this->sendToOpenAI($text, $prompt, 10);
+        $response = $this->sendToOpenAI("", $prompt, 10);
+
+        return data_get($response, 'content');
+    }
+
+    public function generateDocumentCategory($text)
+    {
+        $prompt = 'Given the following text from a document, generate a single, simple category name that best describes the content.
+        The category should be one word and reflect the main theme or subject of the text (make sure to answer with only a plain text word). Here is the text:  ' . $text;
+
+        $response = $this->sendToOpenAI("", $prompt, 10);
 
         return data_get($response, 'content');
     }
