@@ -10,13 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-
+#[AllowDynamicProperties]
 class PdfController extends Controller
 {
     private $textractClient;
 
     public function __construct()
     {
+        // Initialize the TextractClient in the constructor
         $this->textractClient = new TextractClient([
             'version' => 'latest',
             'region' => env('AWS_DEFAULT_REGION'),
@@ -141,4 +142,52 @@ class PdfController extends Controller
                 }
                 return $text;
             } else {
-                return "
+                return "Text extraction failed.";
+            }
+        } catch (\Exception $e) {
+            return "An error occurred: " . $e->getMessage();
+        }
+    }
+
+    public function generateCustomUrl($path)
+    {
+        $bucketName = 'snapintuit';
+        $region = 'eu-central-1';
+        return "https://{$bucketName}.s3.{$region}.amazonaws.com/{$path}";
+    }
+
+    public function deletePdf(Request $request)
+    {
+        $pdfId = $request->route('id');
+        $pdf = Pdf::find($pdfId);
+
+        if (auth()->user()->id !== $pdf->user_id) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        if (isset($pdf)) {
+            Storage::disk('s3')->delete($pdf->media->first()->getPath());
+            $pdf->delete();
+            return response()->json(['message' => 'Pdf deleted successfully'], 200);
+        }
+
+        return response()->json(['message' => 'Pdf not found'], 404);
+    }
+
+    public function getPdfCategories(Request $request)
+    {
+        Log::info('Request to get user pdfs', $request->all());
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $userId = $request->input('user_id');
+        $pdfs = Pdf::where('user_id', $userId)
+            ->select('category')
+            ->distinct()
+            ->get();
+        $pdfs->prepend(['category' => 'All']);
+
+        return response()->json($pdfs, 200);
+    }
+}
