@@ -43,8 +43,11 @@ class ResponseAIController extends Controller
 
     public function generateDocumentCategory($text)
     {
-        $prompt = 'Given the following text from a document, generate a single, simple category name that best describes the content.
-        The category should be one word and reflect the main theme or subject of the text (make sure to answer with only a plain text word). Here is the text:  ' . $text;
+        $prompt = "Given the following text from a document, generate a single, simple category name that best
+        describes the content. The category should be one word and reflect the main theme or subject of the
+        text. Possible categories include 'Contract', 'Book', 'Report', 'Article', 'Invoice', 'Manual' 'Letter'
+        and others. Ensure your answer is only a plain text word that captures the essence of the document.
+        Here is the text:  " . $text;
 
         $response = $this->sendToOpenAI("", $prompt, 10);
 
