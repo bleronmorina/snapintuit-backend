@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use function PHPUnit\Framework\isEmpty;
+use function Sodium\add;
 
 #[AllowDynamicProperties] class PdfController extends Controller
 
@@ -83,13 +84,14 @@ use function PHPUnit\Framework\isEmpty;
 
     public function getUserPdfs(Request $request)
     {
+        Log::info('Request to get user pdfs', $request->all());
         $request->validate([
-            'category' => 'required|string',
+            'filter' => 'required|string',
             'user_id' => 'required|integer|exists:users,id',
         ]);
 
         $userId = $request->input('user_id');
-        $category = $request->input('category');
+        $category = $request->input('filter');
 
         if($category === 'All'){
             $pdfs = Pdf::where('user_id', $userId)
@@ -198,14 +200,18 @@ use function PHPUnit\Framework\isEmpty;
 
 
     public function getPdfCategories(Request $request){
+
+Log::info('Request to get user pdfs', $request->all());
         $request->validate([
             'user_id' => 'required|integer|exists:users,id',
         ]);
         $userId = $request->input('user_id');
+
         $pdfs = Pdf::where('user_id', $userId)
             ->select('category')
             ->distinct()
             ->get();
+        $pdfs->prepend(['category' => 'All']);
 
         return response()->json($pdfs, 200);
     }
