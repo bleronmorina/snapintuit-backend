@@ -34,9 +34,10 @@ class ResponseAIController extends Controller
 
     public function generateDocumentName($text)
     {
-        $prompt = 'Generate a title based on the following text (only return the simple name,no apostrophes, keep it extra short!): ' . $text;
+        $prompt = "Create a very short, simple title that captures the main idea of the following text.
+        The title should be a single word or phrase, without apostrophes or extra characters. Here is the text: " . $text;
 
-        $response = $this->sendToOpenAI("", $prompt, 10);
+        $response = $this->sendToOpenAI("", $prompt, 15);
 
         return data_get($response, 'content');
     }
